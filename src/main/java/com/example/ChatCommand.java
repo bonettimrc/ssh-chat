@@ -63,35 +63,49 @@ public class ChatCommand implements Command, Runnable {
 
     private String readLine() throws IOException {
         stringBuilder = new StringBuilder();
-        while (true) {
+        label: while (true) {
             int c = bufferedReader.read();
-            if (c == 127) {
-                if (stringBuilder.length() > 0) {
-                    bufferedWriter.write('\r');
-                    bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
-                    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-                    bufferedWriter.write('\r');
-                    bufferedWriter.write(stringBuilder.toString());
-                    bufferedWriter.flush();
-                }
-            } else if (c == 13) {
-                bufferedWriter.write('\r');
-                bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
-                bufferedWriter.write('\r');
-                bufferedWriter.flush();
-                break;
-            } else {
-                bufferedWriter.write(c);
-                bufferedWriter.flush();
-                stringBuilder.append((char) c);
-                if (c == 3) {
+            switch (c) {
+                case 13:
+                    carriageReturn();
+                    break label;
+                case 127:
+                    if (stringBuilder.length() > 0) {
+                        backSpace();
+                    }
                     break;
-                }
+                default:
+                    if (c >= 32 && c <= 126) {
+                        bufferedWriter.write(c);
+                        bufferedWriter.flush();
+                        stringBuilder.append((char) c);
+                    }
+                    if (c == 3) {// endOfText
+                        stringBuilder.append((char) c);
+                        break label;
+                    }
+                    break;
             }
         }
         String string = stringBuilder.toString();
         stringBuilder = new StringBuilder();
         return string;
+    }
+
+    private void carriageReturn() throws IOException {
+        bufferedWriter.write('\r');
+        bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
+        bufferedWriter.write('\r');
+        bufferedWriter.flush();
+    }
+
+    private void backSpace() throws IOException {
+        bufferedWriter.write('\r');
+        bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        bufferedWriter.write('\r');
+        bufferedWriter.write(stringBuilder.toString());
+        bufferedWriter.flush();
     }
 
     public void writeLine(String string) throws IOException {
@@ -109,10 +123,9 @@ public class ChatCommand implements Command, Runnable {
         while (true) {
             try {
                 String cmd = readLine();
-                if (new StringBuilder().append((char) 3).toString().equals(cmd)) {
+                if (cmd.endsWith("\u0003")) {
                     break;
                 }
-
                 chatShellFactory.onChatCommadReadLine(cmd, this);
             } catch (Exception e) {
                 callback.onExit(-1, e.getMessage());

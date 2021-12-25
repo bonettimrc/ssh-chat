@@ -16,24 +16,22 @@ import org.apache.sshd.server.session.ServerSession;
  */
 public class App {
 
+    private static final class EmptyPasswordAuthenticator implements PasswordAuthenticator {
+        @Override
+        public boolean authenticate(String username, String password, ServerSession session)
+                throws PasswordChangeRequiredException, AsyncAuthException {
+            return true;
+        }
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException {
         SshServer sshd = SshServer.setUpDefaultServer();
-        sshd.setPort(6666);
+        sshd.setPort(22);
         sshd.setHost("0.0.0.0");
         sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(Paths.get("./key")));
         sshd.setShellFactory(new ChatShellFactory());
-        sshd.setPasswordAuthenticator(new PasswordAuthenticator() {
-
-            @Override
-            public boolean authenticate(String username, String password, ServerSession session)
-                    throws PasswordChangeRequiredException, AsyncAuthException {
-                // TODO Auto-generated method stub
-                return true;
-            }
-
-        });
+        sshd.setPasswordAuthenticator(new EmptyPasswordAuthenticator());
         sshd.start();
-
         Thread.sleep(Long.MAX_VALUE);
     }
 }
