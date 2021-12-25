@@ -19,7 +19,7 @@ public class ChatCommand implements Command, Runnable {
     private ExitCallback callback;
     private OutputStream err;
     private ChatShellFactory chatShellFactory;
-    public String userName;
+    private String userName;
     private StringBuilder stringBuilder;
 
     public ChatCommand(ChatShellFactory chatShellFactory) {
@@ -35,7 +35,7 @@ public class ChatCommand implements Command, Runnable {
 
     @Override
     public void destroy(ChannelSession channel) throws Exception {
-        // TODO Auto-generated method stub
+        chatShellFactory.chatCommands.remove(this);
 
     }
 
@@ -112,13 +112,14 @@ public class ChatCommand implements Command, Runnable {
                 if (new StringBuilder().append((char) 3).toString().equals(cmd)) {
                     break;
                 }
-                chatShellFactory.onChatCommadReadLine(cmd);
+                chatShellFactory.onChatCommadReadLine(cmd, userName);
             } catch (Exception e) {
                 callback.onExit(-1, e.getMessage());
                 return;
             }
         }
         callback.onExit(0);
+
     }
 
     @Override

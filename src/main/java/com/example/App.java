@@ -18,7 +18,7 @@ public class App {
 
     public static void main(String[] args) throws IOException, InterruptedException {
         SshServer sshd = SshServer.setUpDefaultServer();
-        sshd.setPort(22);
+        sshd.setPort(6666);
         sshd.setHost("0.0.0.0");
         sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(Paths.get("./key")));
         sshd.setShellFactory(new ChatShellFactory());
