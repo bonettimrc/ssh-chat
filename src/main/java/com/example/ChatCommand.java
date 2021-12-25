@@ -19,7 +19,7 @@ public class ChatCommand implements Command, Runnable {
     private ExitCallback callback;
     private OutputStream err;
     private ChatShellFactory chatShellFactory;
-    private String userName;
+    public String userName;
     private StringBuilder stringBuilder;
 
     public ChatCommand(ChatShellFactory chatShellFactory) {
@@ -112,7 +112,8 @@ public class ChatCommand implements Command, Runnable {
                 if (new StringBuilder().append((char) 3).toString().equals(cmd)) {
                     break;
                 }
-                chatShellFactory.onChatCommadReadLine(cmd, userName);
+
+                chatShellFactory.onChatCommadReadLine(cmd, this);
             } catch (Exception e) {
                 callback.onExit(-1, e.getMessage());
                 return;

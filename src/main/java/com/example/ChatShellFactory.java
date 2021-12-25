@@ -15,13 +15,24 @@ public class ChatShellFactory implements ShellFactory {
         chatCommands = new ArrayList<ChatCommand>();
     }
 
-    public void onChatCommadReadLine(String string, String userName) {
+    private String getColor(int i) {
+        if (i == 0) {
+            return "\u001b[0m";
+        } else if (i < 8) {
+            return "\u001b[3%dm".formatted(i);
+        } else if (i < 16) {
+            return "\u001b[9%dm".formatted(i % 8);
+        } else {
+            return "\u001b[0m";
+        }
+    }
+
+    public void onChatCommadReadLine(String string, ChatCommand sender) {
         System.out.println(string);
         for (ChatCommand chatCommand : chatCommands) {
             try {
-                chatCommand.writeLine("\u001b[3"
-                        .concat(Integer.toString(1 + (int) Math.abs(Math.floorMod(userName.hashCode(), 7))))
-                        .concat("m").concat(userName).concat("\u001b[0m").concat(":").concat(string));
+                chatCommand.writeLine("%s%s%s:%s".formatted(getColor(chatCommands.indexOf(sender) + 1), sender.userName,
+                        getColor(0), string));
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
