@@ -1,12 +1,10 @@
 package com.example;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+
+import com.example.Message.Type;
 
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
@@ -14,41 +12,39 @@ import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 
 public class ChatCommand implements Command, Runnable {
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
-    private ExitCallback callback;
+    private InputStream in;
+    private OutputStream out;
     private OutputStream err;
+    private ExitCallback callback;
+    private String userName;
     private ChatShellFactory chatShellFactory;
-    public String userName;
     private StringBuilder stringBuilder;
+    private int ColorIndex;
 
     public ChatCommand(ChatShellFactory chatShellFactory) {
-        super();
         this.chatShellFactory = chatShellFactory;
+        ColorIndex = (int) ((Math.random() * (36 - 31)) + 31);
     }
 
     @Override
     public void start(ChannelSession channel, Environment env) throws IOException {
-        userName = env.getEnv().get("USER");
+        userName = env.getEnv().get(Environment.ENV_USER);
         new Thread(this).start();
     }
 
     @Override
     public void destroy(ChannelSession channel) throws Exception {
-        chatShellFactory.chatCommands.remove(this);
-
+        chatShellFactory.removeChatCommand(this);
     }
 
     @Override
     public void setInputStream(InputStream in) {
-        bufferedReader = new BufferedReader(new InputStreamReader(in));
-
+        this.in = in;
     }
 
     @Override
     public void setOutputStream(OutputStream out) {
-        bufferedWriter = new BufferedWriter(new OutputStreamWriter(out));
-
+        this.out = out;
     }
 
     @Override
@@ -57,89 +53,127 @@ public class ChatCommand implements Command, Runnable {
 
     }
 
-    private String repeatChar(int length, char c) {
-        return new String(new char[length]).replace('\0', c);
-    }
-
-    private String readLine() throws IOException {
-        stringBuilder = new StringBuilder();
-        label: while (true) {
-            int c = bufferedReader.read();
-            switch (c) {
-                case 13:
-                    carriageReturn();
-                    break label;
-                case 127:
-                    if (stringBuilder.length() > 0) {
-                        backSpace();
-                    }
-                    break;
-                default:
-                    if (c >= 32 && c <= 126) {
-                        bufferedWriter.write(c);
-                        bufferedWriter.flush();
-                        stringBuilder.append((char) c);
-                    }
-                    if (c == 3) {// endOfText
-                        stringBuilder.append((char) c);
-                        break label;
-                    }
-                    break;
-            }
-        }
-        String string = stringBuilder.toString();
-        stringBuilder = new StringBuilder();
-        return string;
-    }
-
-    private void carriageReturn() throws IOException {
-        bufferedWriter.write('\r');
-        bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
-        bufferedWriter.write('\r');
-        bufferedWriter.flush();
-    }
-
-    private void backSpace() throws IOException {
-        bufferedWriter.write('\r');
-        bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-        bufferedWriter.write('\r');
-        bufferedWriter.write(stringBuilder.toString());
-        bufferedWriter.flush();
-    }
-
-    public void writeLine(String string) throws IOException {
-        bufferedWriter.write('\r');
-        bufferedWriter.write(repeatChar(stringBuilder.length(), ' '));
-        bufferedWriter.write('\r');
-        bufferedWriter.write(string);
-        bufferedWriter.newLine();
-        bufferedWriter.write(stringBuilder.toString());
-        bufferedWriter.flush();
+    @Override
+    public void setExitCallback(ExitCallback callback) {
+        this.callback = callback;
     }
 
     @Override
     public void run() {
         while (true) {
+            String line;
             try {
-                String cmd = readLine();
-                if (cmd.endsWith("\u0003")) {
-                    break;
-                }
-                chatShellFactory.onChatCommadReadLine(cmd, this);
-            } catch (Exception e) {
-                callback.onExit(-1, e.getMessage());
-                return;
+                line = readLine();
+            } catch (EndOfTextException e) {
+                break;
+            } catch (IOException e) {
+                callback.onExit(-1);
+                break;
             }
+            chatShellFactory.onMessage(new Message(line, this, Type.PublicMessage));
         }
         callback.onExit(0);
+    }
+
+    private String readLine() throws EndOfTextException, IOException {
+        stringBuilder = new StringBuilder();
+        while (true) {
+            char c;
+            try {
+                c = readChar();
+            } catch (BackSpaceException e) {
+                onBackSpace();
+                continue;
+            } catch (CarriageReturnException e) {
+                onCarriageReturn();
+                break;
+            }
+            stringBuilder.append(c);
+        }
+        String line = stringBuilder.toString();
+        stringBuilder.delete(0, stringBuilder.length());
+        return line;
 
     }
 
-    @Override
-    public void setExitCallback(ExitCallback callback) {
-        // TODO Auto-generated method stub
-        this.callback = callback;
+    public void onMessage(Message message) {
+        try {
+            writeLine(message.toString());
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
+    private char readChar() throws BackSpaceException, EndOfTextException, CarriageReturnException, IOException {
+        char c = (char) in.read();
+        switch (c) {
+            case 127:
+                throw new BackSpaceException();
+            case 3:
+                throw new EndOfTextException();
+            case 13:
+                throw new CarriageReturnException();
+            default:
+                out.write(c);
+                out.flush();
+                return c;
+        }
+    }
+
+    private void onBackSpace() throws IOException {
+        if (stringBuilder.length() == 0) {
+            return;
+        }
+        out.write('\r');
+        for (int i = 0; i < stringBuilder.length(); i++) {
+            out.write(' ');
+        }
+        out.write('\r');
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        out.write(stringBuilder.toString().getBytes());
+        out.flush();
+    }
+
+    private void onCarriageReturn() throws IOException {
+        out.write('\r');
+        for (int i = 0; i < stringBuilder.length(); i++) {
+            out.write(' ');
+        }
+        out.write('\r');
+        out.flush();
+    }
+
+    private void writeLine(String line) throws IOException {
+        out.write('\r');
+        for (int i = 0; i < stringBuilder.length(); i++) {
+            out.write(' ');
+        }
+        out.write('\r');
+        out.write(line.getBytes());
+        // newLine
+        out.write('\r');
+        out.write('\n');
+        out.write(stringBuilder.toString().getBytes());
+        out.flush();
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    private class EndOfTextException extends Exception {
+    }
+
+    private class CarriageReturnException extends Exception {
+
+    }
+
+    private class BackSpaceException extends Exception {
+
+    }
+
+    public int getColorIndex() {
+        return ColorIndex;
+    }
 }

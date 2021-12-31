@@ -2,42 +2,25 @@ package com.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import com.example.commands.Interaction;
+import com.example.commands.Ping;
 
 import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
+
 import org.apache.sshd.server.shell.ShellFactory;
 
 public class ChatShellFactory implements ShellFactory {
-    ArrayList<ChatCommand> chatCommands;
+    private ArrayList<ChatCommand> chatCommands;
+    private ArrayList<com.example.commands.Command> commands;
+    private final String COMMAND_PREFIX = "/";
 
     public ChatShellFactory() {
-        super();
-        chatCommands = new ArrayList<ChatCommand>();
-    }
-
-    private String getColor(int i) {
-        if (i == 0) {
-            return "\u001b[0m";
-        } else if (i < 8) {
-            return "\u001b[3%dm".formatted(i);
-        } else if (i < 16) {
-            return "\u001b[9%dm".formatted(i % 8);
-        } else {
-            return "\u001b[0m";
-        }
-    }
-
-    public void onChatCommadReadLine(String string, ChatCommand sender) {
-        System.out.println(string);
-        for (ChatCommand chatCommand : chatCommands) {
-            try {
-                chatCommand.writeLine("%s%s%s:%s".formatted(getColor(chatCommands.indexOf(sender) + 1), sender.userName,
-                        getColor(0), string));
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+        this.chatCommands = new ArrayList<ChatCommand>();
+        this.commands = new ArrayList<com.example.commands.Command>();
+        this.commands.add(new Ping());
     }
 
     @Override
@@ -45,5 +28,32 @@ public class ChatShellFactory implements ShellFactory {
         ChatCommand chatCommand = new ChatCommand(this);
         chatCommands.add(chatCommand);
         return chatCommand;
+    }
+
+    public void onMessage(Message message) {
+        String content = message.getContent();
+        if (content.startsWith(COMMAND_PREFIX)) {
+            String[] strings = content.substring(1).split(" ");
+            String[] parameters = Arrays.copyOfRange(strings, 1, strings.length);
+            String commandName = strings[0];
+            Interaction interaction = new Interaction(message.getSenderChatCommand(), parameters, this);
+            for (com.example.commands.Command command : commands) {
+                if (command.getName().equalsIgnoreCase(commandName)) {
+                    command.accept(interaction);
+                }
+            }
+            return;
+        }
+        for (ChatCommand chatCommand : chatCommands) {
+            chatCommand.onMessage(message);
+        }
+    }
+
+    public void removeChatCommand(ChatCommand chatCommand) {
+        chatCommands.remove(chatCommand);
+    }
+
+    public ArrayList<ChatCommand> getChatCommands() {
+        return chatCommands;
     }
 }
