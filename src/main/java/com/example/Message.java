@@ -2,12 +2,12 @@ package com.example;
 
 public class Message {
     private String content;
-    private ChatCommand senderChatCommand;
+    private User senderUser;
     private Type type;
 
-    public Message(String content, ChatCommand senderChatCommand, Type type) {
+    public Message(String content, User senderUser, Type type) {
         this.content = content;
-        this.senderChatCommand = senderChatCommand;
+        this.senderUser = senderUser;
         this.type = type;
     }
 
@@ -20,8 +20,8 @@ public class Message {
     public String toString() {
         switch (type) {
             case PublicMessage:
-                return "\u001B[%dm%s\u001B[0m:%s".formatted(senderChatCommand.getColorIndex(),
-                        senderChatCommand.getUserName(),
+                return "\u001B[%dm%s\u001B[0m:%s".formatted(senderUser.getColorIndex(),
+                        senderUser.getUserName(),
                         content);
             case PrivateMessage:
                 // TODO
@@ -39,8 +39,8 @@ public class Message {
         return content;
     }
 
-    public ChatCommand getSenderChatCommand() {
-        return senderChatCommand;
+    public User getSenderUser() {
+        return senderUser;
     }
 
     public enum Type {

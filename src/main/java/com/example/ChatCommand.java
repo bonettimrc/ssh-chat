@@ -16,25 +16,26 @@ public class ChatCommand implements Command, Runnable {
     private OutputStream out;
     private OutputStream err;
     private ExitCallback callback;
-    private String userName;
-    private ChatShellFactory chatShellFactory;
+    private User user;
     private StringBuilder stringBuilder;
-    private int ColorIndex;
 
-    public ChatCommand(ChatShellFactory chatShellFactory) {
-        this.chatShellFactory = chatShellFactory;
-        ColorIndex = (int) ((Math.random() * (36 - 31)) + 31);
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public ChatCommand() {
+        super();
     }
 
     @Override
     public void start(ChannelSession channel, Environment env) throws IOException {
-        userName = env.getEnv().get(Environment.ENV_USER);
+        user.userName = env.getEnv().get(Environment.ENV_USER);
         new Thread(this).start();
     }
 
     @Override
     public void destroy(ChannelSession channel) throws Exception {
-        chatShellFactory.removeChatCommand(this);
+        user.destroy();
     }
 
     @Override
@@ -70,7 +71,7 @@ public class ChatCommand implements Command, Runnable {
                 callback.onExit(-1);
                 break;
             }
-            chatShellFactory.onMessage(new Message(line, this, Type.PublicMessage));
+            user.onMessageSent(new Message(line, user, Type.PublicMessage));
         }
         callback.onExit(0);
     }
@@ -94,15 +95,6 @@ public class ChatCommand implements Command, Runnable {
         stringBuilder.delete(0, stringBuilder.length());
         return line;
 
-    }
-
-    public void onMessage(Message message) {
-        try {
-            writeLine(message.toString());
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     private char readChar() throws BackSpaceException, EndOfTextException, CarriageReturnException, IOException {
@@ -146,7 +138,7 @@ public class ChatCommand implements Command, Runnable {
         out.flush();
     }
 
-    private void writeLine(String line) throws IOException {
+    void writeLine(String line) throws IOException {
         out.write('\r');
         for (int i = 0; i < stringBuilder.length(); i++) {
             out.write(' ');
@@ -160,10 +152,6 @@ public class ChatCommand implements Command, Runnable {
         out.flush();
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
     private class EndOfTextException extends Exception {
     }
 
@@ -175,7 +163,4 @@ public class ChatCommand implements Command, Runnable {
 
     }
 
-    public int getColorIndex() {
-        return ColorIndex;
-    }
 }

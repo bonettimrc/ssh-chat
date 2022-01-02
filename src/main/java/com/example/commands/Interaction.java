@@ -1,17 +1,17 @@
 package com.example.commands;
 
-import com.example.ChatCommand;
-import com.example.ChatShellFactory;
+import com.example.Room;
+import com.example.User;
 
 public class Interaction {
-    ChatCommand chatCommand;
-    ChatShellFactory chatShellFactory;
+    User user;
+    Room room;
     String[] parameters;
 
-    public Interaction(ChatCommand chatCommand, String[] parameters, ChatShellFactory chatShellFactory) {
-        this.chatCommand = chatCommand;
+    public Interaction(User user, Room room, String[] parameters) {
+        this.user = user;
+        this.room = room;
         this.parameters = parameters;
-        this.chatShellFactory = chatShellFactory;
     }
 
 }

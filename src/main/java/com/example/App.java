@@ -25,7 +25,7 @@ public class App {
         sshd.setPort(22);
         sshd.setHost("0.0.0.0");
         sshd.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(Paths.get("./key")));
-        sshd.setShellFactory(new ChatShellFactory());
+        sshd.setShellFactory(new ChatShellFactory(new Room()));
         sshd.setPasswordAuthenticator(new EmptyPasswordAuthenticator());
         sshd.start();
         Thread.sleep(Long.MAX_VALUE);
