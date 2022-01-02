@@ -3,7 +3,7 @@ package com.example.commands;
 import com.example.ChatCommand;
 import com.example.Message;
 
-public class Ping implements Command {
+public class Ping extends Command {
 
     @Override
     public void accept(Interaction t) {
@@ -12,11 +12,6 @@ public class Ping implements Command {
                 chatCommand.onMessage(new Message("%s ti ha pingato\u0007".formatted(chatCommand.getUserName())));
             }
         }
-    }
-
-    @Override
-    public String getName() {
-        return "ping";
     }
 
 }

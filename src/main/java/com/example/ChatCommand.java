@@ -114,6 +114,8 @@ public class ChatCommand implements Command, Runnable {
                 throw new EndOfTextException();
             case 13:
                 throw new CarriageReturnException();
+            case 27:
+                return readChar();
             default:
                 out.write(c);
                 out.flush();

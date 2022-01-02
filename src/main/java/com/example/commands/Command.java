@@ -2,10 +2,12 @@ package com.example.commands;
 
 import java.util.function.Consumer;
 
-public interface Command extends Consumer<Interaction> {
+public abstract class Command implements Consumer<Interaction> {
 
     @Override
-    public void accept(Interaction t);
+    public abstract void accept(Interaction t);
 
-    public String getName();
+    public String getName() {
+        return this.getClass().getSimpleName();
+    }
 }

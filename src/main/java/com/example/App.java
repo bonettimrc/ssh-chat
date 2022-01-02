@@ -10,10 +10,6 @@ import org.apache.sshd.server.auth.password.PasswordChangeRequiredException;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
-/**
- * Hello world!
- *
- */
 public class App {
 
     private static final class EmptyPasswordAuthenticator implements PasswordAuthenticator {
