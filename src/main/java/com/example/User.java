@@ -3,12 +3,12 @@ package com.example;
 import java.io.IOException;
 
 public class User {
-    private ChatCommand chatCommand;
+    private Screen chatCommand;
     String userName;
     private int ColorIndex;
     private Room room;
 
-    public User(ChatCommand chatCommand, Room room) {
+    public User(Screen chatCommand, Room room) {
         this.chatCommand = chatCommand;
         this.room = room;
         this.chatCommand.setUser(this);

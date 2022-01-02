@@ -11,7 +11,7 @@ import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 
-public class ChatCommand implements Command, Runnable {
+public class Screen implements Command, Runnable {
     private InputStream in;
     private OutputStream out;
     private OutputStream err;
@@ -23,7 +23,7 @@ public class ChatCommand implements Command, Runnable {
         this.user = user;
     }
 
-    public ChatCommand() {
+    public Screen() {
         super();
     }
 
