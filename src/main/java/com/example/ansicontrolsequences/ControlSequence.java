@@ -2,10 +2,10 @@ package com.example.ansicontrolsequences;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.function.Function;
 
 public class ControlSequence {
     private final byte[] introducer = { 0x1B, 0x5B };// ESC [
-    private final byte parameterSeparator = 0x3B;// ;
 
     private byte[] controlSequence;
 
@@ -28,10 +28,9 @@ public class ControlSequence {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
             byteArrayOutputStream.write(introducer);
-            byteArrayOutputStream.write(join(parameterBytes, parameterSeparator));
-            byteArrayOutputStream.write(join(intermediateBytes, parameterSeparator));
+            byteArrayOutputStream.write(parameterBytes);
+            byteArrayOutputStream.write(intermediateBytes);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         byteArrayOutputStream.write(finalByte);
@@ -46,26 +45,33 @@ public class ControlSequence {
         this(new byte[] { parameterByte }, finalByte);
     }
 
-    public ControlSequence(char parameterByte, char finalByte) {
-        this((byte) parameterByte, (byte) finalByte);
+    public ControlSequence(String parameterBytes, char finalByte) {
+        this(parameterBytes.getBytes(), (byte) finalByte);
     }
 
-    private static byte[] join(byte[] bytes, byte separator) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        for (int i = 0; i < bytes.length; i++) {
-            byteArrayOutputStream.write(bytes[i]);
-            if (i == bytes.length - 1) {
-                continue;
+    public static Function<String, ControlSequence> getCurriedControlSequence(final char finalByte) {
+        return new Function<String, ControlSequence>() {
+            @Override
+            public ControlSequence apply(String t) {
+                return new ControlSequence(t, finalByte);
             }
-            byteArrayOutputStream.write(separator);
-        }
-        return byteArrayOutputStream.toByteArray();
+
+        };
     }
 
-    public static void main(String[] args) {
-        System.out.println(new ControlSequence(new byte[] { (byte) '3', (byte) '1' }, (byte) 'm'));
-        System.out.println("dio cae");
-        System.out.println(new ControlSequence(new byte[] { (byte) '3', (byte) '1' }, (byte) 'm'));
-        System.out.println("dio cae");
-    }
+    public static final Function<String, ControlSequence> cursorUp = getCurriedControlSequence('A');
+    public static final Function<String, ControlSequence> cursorDown = getCurriedControlSequence('B');
+    public static final Function<String, ControlSequence> cursorForward = getCurriedControlSequence('C');
+    public static final Function<String, ControlSequence> cursorBack = getCurriedControlSequence('D');
+    public static final Function<String, ControlSequence> cursorNextLine = getCurriedControlSequence('E');
+    public static final Function<String, ControlSequence> cursorPreviousLine = getCurriedControlSequence('F');
+    public static final Function<String, ControlSequence> cursorHorizontalAbsolute = getCurriedControlSequence('G');
+    public static final Function<String, ControlSequence> cursorPosition = getCurriedControlSequence('H');
+    public static final Function<String, ControlSequence> eraseInDisplay = getCurriedControlSequence('J');
+    public static final Function<String, ControlSequence> eraseInLine = getCurriedControlSequence('K');
+    public static final Function<String, ControlSequence> scrollUp = getCurriedControlSequence('S');
+    public static final Function<String, ControlSequence> scrollDown = getCurriedControlSequence('T');
+    public static final Function<String, ControlSequence> horizontalVerticalPosition = getCurriedControlSequence('f');
+    public static final Function<String, ControlSequence> selectGraphicRendition = getCurriedControlSequence('m');
+
 }

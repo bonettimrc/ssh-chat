@@ -50,4 +50,8 @@ public class Room {
         return users;
     }
 
+    public ArrayList<Command> getCommands() {
+        return commands;
+    }
+
 }

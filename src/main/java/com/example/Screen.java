@@ -138,7 +138,7 @@ public class Screen implements Command, Runnable {
         out.flush();
     }
 
-    void writeLine(String line) throws IOException {
+    public void writeLine(String line) throws IOException {
         out.write('\r');
         for (int i = 0; i < stringBuilder.length(); i++) {
             out.write(' ');
