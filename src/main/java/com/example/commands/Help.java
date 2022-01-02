@@ -6,9 +6,9 @@ public class Help extends Command {
 
     @Override
     public void accept(Interaction t) {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder("\r\n");
         for (Command command : t.room.getCommands()) {
-            stringBuilder.append("%s:%s\n".formatted(command.getName(), command.getDescription()));
+            stringBuilder.append("%s:%s\r\n".formatted(command.getName(), command.getDescription()));
         }
         t.user.onMessageRecieved(new Message(stringBuilder.toString()));
     }

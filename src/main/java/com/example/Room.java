@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.example.commands.Command;
+import com.example.commands.Help;
 import com.example.commands.Interaction;
+import com.example.commands.Name;
 import com.example.commands.Ping;
 
 public class Room {
@@ -15,8 +17,12 @@ public class Room {
     public Room() {
         this.users = new ArrayList<User>();
         this.commands = new ArrayList<Command>();
-        // TODO:commands get added by class, not by instances of classes
+        // commands might get added by class instead of instance?
+        // ~ not possible, would break anonymous commands
+        // still need to find a way to remove redoundaces of command name
         this.commands.add(new Ping());
+        this.commands.add(new Help());
+        this.commands.add(new Name());
     }
 
     public void onMessage(Message message) {

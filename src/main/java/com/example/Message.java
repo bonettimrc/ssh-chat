@@ -23,17 +23,17 @@ public class Message {
     @Override
     public String toString() {
         Function<String, ControlSequence> sgr = ControlSequence.selectGraphicRendition;
-        ControlSequence senderUserColor = sgr.apply(Integer.toString(senderUser.getColorIndex()));
         ControlSequence reset = sgr.apply("0");
-        ControlSequence bold = sgr.apply("1");
         switch (type) {
             case PublicMessage:
+                ControlSequence senderUserColor = sgr.apply(Integer.toString(senderUser.getColorIndex()));
                 return "%s%s%s:%s".formatted(senderUserColor.toString(), senderUser.getUserName(), reset.toString(),
                         content);
             case PrivateMessage:
                 // TODO: implement private messages style
                 return null;
             case CommandMessage:
+                ControlSequence bold = sgr.apply("1");
                 // TODO: dynamic room name
                 return "%s%s%s:%s".formatted(bold.toString(), "Room", reset.toString(),
                         content);
