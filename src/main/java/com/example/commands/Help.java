@@ -8,7 +8,7 @@ public class Help extends Command {
     public void accept(Interaction t) {
         StringBuilder stringBuilder = new StringBuilder("\r\n");
         for (Command command : t.room.getCommands()) {
-            stringBuilder.append("%s:%s\r\n".formatted(command.getName(), command.getDescription()));
+            stringBuilder.append(String.format("%s:%s\r\n", command.getName(), command.getDescription()));
         }
         t.user.onMessageRecieved(new Message(stringBuilder.toString()));
     }

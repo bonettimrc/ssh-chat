@@ -8,7 +8,7 @@ public class Ping extends Command {
     public void accept(Interaction t) {
         for (User user : t.room.getUsers()) {
             if (user.getUserName().equalsIgnoreCase(t.parameters[0])) {
-                user.onMessageRecieved(new Message("%s ti ha pingato\u0007".formatted(t.user.getUserName())));
+                user.onMessageRecieved(new Message(String.format("%s ti ha pingato\u0007", t.user.getUserName())));
             }
         }
     }
